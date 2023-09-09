@@ -33,9 +33,9 @@ app.post('/generate', upload.single('image'), async (req, res) => {
     // Создание Jimp объекта из загруженного изображения
     const image = await Jimp.read(imageBuffer);
 
-
+    const fontType = path.resolve(Jimp.FONT_SANS_32_BLACK)
     // Добавление текста на изображение
-    const font = await Jimp.loadFont(Jimp.FONT_SANS_32_BLACK)
+    const font = await Jimp.loadFont(fontType)
     image.print(font, 0, 0, {
       text: title,
       alignmentX: Jimp.HORIZONTAL_ALIGN_LEFT,
