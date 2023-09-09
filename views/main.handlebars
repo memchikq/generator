@@ -1,0 +1,13 @@
+<h1 style="color: white;">Генератор изображений</h1>
+    <form action="/generate" method="POST" enctype="multipart/form-data">
+        <input type="text" name="title" placeholder="Заголовок" required>
+        <input type="text" name="description" placeholder="Описание" required>
+        <input type="file" name="image" accept=".jpg, .jpeg, .png" required>
+        <button type="submit">Сгенерировать изображение</button>
+    </form>
+
+    {{#if imageUrl}}
+      <h2>Сгенерированное изображение:</h2>
+      <img style="width: 512px; height: 512px;" src="{{imageUrl}}" alt="Сгенерированное изображение">
+      <a href="{{imageUrl}}" download="generated_image.png"><button>Скачать изображение</button></a>
+    {{/if}}

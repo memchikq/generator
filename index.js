@@ -2,12 +2,17 @@ const express = require('express');
 const multer = require('multer');
 const Jimp = require('jimp');
 const path = require('path');
-
+const handlebars  = require('express-handlebars');
 const app = express();
 const port = 3000;
 
 app.use(express.static(path.join(__dirname,"public")));
-app.set('view engine', 'ejs');
+app.engine(
+    'handlebars',
+    handlebars.engine({ defaultLayout: 'index'})
+);
+app.set('views', path.join(__dirname, "views"));
+app.set('view engine', 'handlebars');
 app.use(express.urlencoded({ extended: true }));
 
 const storage = multer.memoryStorage();
@@ -15,7 +20,7 @@ const upload = multer({ storage: storage });
 
 // Главная страница
 app.get('/', (req, res) => {
-  res.render('index',{ imageUrl: null });
+  res.render('main.handlebars',{ imageUrl: null });
 });
 
 // Обработка отправки формы
@@ -50,7 +55,7 @@ app.post('/generate', upload.single('image'), async (req, res) => {
       await image.writeAsync(outputPath);
   
       // Отправка сгенерированного изображения клиенту
-      res.render('index', { imageUrl: `/download/${fileName}` });
+      res.render('main.handlebars', { imageUrl: `/download/${fileName}` });
   } catch (error) {
     console.error(error);
     res.status(500).send('Ошибка при генерации изображения.');
