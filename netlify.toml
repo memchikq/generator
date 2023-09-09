@@ -1,0 +1,11 @@
+[build]
+  command = "npm run build" # Это команда, которая запускает сборку вашего проекта (если требуется)
+
+[[redirects]]
+  from = "/api/*" 
+  to = "/.netlify/functions/api" 
+
+[[functions]]
+  name = "api"
+  directory = "." 
+  command = "npm start"

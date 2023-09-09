@@ -3,10 +3,11 @@ const multer = require('multer');
 const Jimp = require('jimp');
 const path = require('path');
 const handlebars  = require('express-handlebars');
+const serverless = require("serverless-http");
 const app = express();
 const port = 3000;
 
-app.use(express.static(path.join(__dirname,"public")));
+app.use(express.static(path.join(__dirname,"../public")));
 app.engine(
     'handlebars',
     handlebars.engine({ defaultLayout: 'index'})
@@ -51,7 +52,7 @@ app.post('/generate', upload.single('image'), async (req, res) => {
       const fileName = `generated-${Date.now()}.png`;
 
       // Сохранение сгенерированного изображения
-      const outputPath = path.join(__dirname, 'public', fileName);
+      const outputPath = path.join(__dirname, '../public', fileName);
       await image.writeAsync(outputPath);
   
       // Отправка сгенерированного изображения клиенту
@@ -68,6 +69,5 @@ app.get('/download/:fileName', (req, res) => {
     res.download(filePath);
 });
 
-app.listen(port, () => {
-  console.log(`Сервер запущен на порту ${port}`);
-});
+module.exports = app;
+module.exports.handler = serverless(app);
