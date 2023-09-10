@@ -2,11 +2,16 @@ const express = require("express")
 const multer = require("multer")
 const sharp = require("sharp")
 const path = require("path")
+const axios = require("axios")
 const handlebars = require("express-handlebars")
+const { ImgurClient } = require('imgur');
 const app = express()
+const dotenv = require('dotenv');
+dotenv.config();
 const port = 3000
 
-app.use(express.static(path.join(__dirname, "public")))
+const client = new ImgurClient({ clientId: process.env.CLIENT_ID,clientSecret:process.env.CLIENT_SECRET });
+
 app.engine("handlebars", handlebars.engine({ defaultLayout: "index" }))
 app.set("views", path.join(__dirname, "views"))
 app.set("view engine", "handlebars")
@@ -15,15 +20,15 @@ app.use(express.urlencoded({ extended: true }))
 const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
 
-// Главная страница
+
 app.get("/", (req, res) => {
   res.render("main.handlebars", { imageUrl: null })
 })
 
-// Обработка отправки формы
+
 app.post("/generate", upload.single("image"), async (req, res) => {
   try {
-    // Извлечение данных из формы
+   
     const { title, description } = req.body
     const imageBuffer = req.file.buffer
 
@@ -42,28 +47,34 @@ app.post("/generate", upload.single("image"), async (req, res) => {
       {
         input: Buffer.from(svgImage),
         top: 0,
-        left:0,
+        left:100,
         
       }
     ]).toBuffer();
 
-    const fileName = `generated-${Date.now()}.png`
+    const response = await client.upload({
+      image:compositeResult,
+      type:"stream",
+      title:title,
+      description:description
+    })
 
-    const outputPath = path.join(__dirname, "public", fileName)
-
-    await sharp(compositeResult).toFile(outputPath)
-
-    res.render("main.handlebars", { imageUrl: `/download/${fileName}` })
+    res.render("main.handlebars", { id:response.data.id,imageUrl: response.data.link })
   } catch (error) {
     console.error(error)
     res.status(500).send("Ошибка при генерации изображения.")
   }
 })
 
-app.get("/download/:fileName", (req, res) => {
+app.get("/download/:fileName", async (req, res) => {
   const { fileName } = req.params
-  const filePath = path.join(__dirname, "public", fileName)
-  res.download(filePath)
+  
+  const response = await axios.get(`https://i.imgur.com/${fileName}.png`, { responseType: 'stream' });
+  
+  res.setHeader('Content-Type', response.headers['content-type']);
+  res.setHeader('Content-Disposition', `attachment; filename="imgur_image.jpg"`);
+
+  response.data.pipe(res)
 })
 
 app.listen(port, () => {
